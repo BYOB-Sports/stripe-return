@@ -7,7 +7,7 @@
     const params = new URLSearchParams(window.location.search);
     const expired = params.get('expired');    
     // Create deep link
-    const deepLink = `byobsports://home/coaches/propose?expired${expired ? '1' : 0}`;
+    const deepLink = `byobsports://home/coaches/propose?expired=${expired ? '1' : 0}`;
     
     // Try to open the app
     window.location.href = deepLink;
