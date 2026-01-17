@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>BYOB Sports - Open in App</title>
+  <script>
+    // Extract matchId and invite_token from URL
+    const params = new URLSearchParams(window.location.search);
+    const expired = params.get('expired');    
+    // Create deep link
+    const deepLink = `byobsports://home/coaches/propose?expired${expired ? '1' : 0}`;
+    
+    // Try to open the app
+    window.location.href = deepLink;
+
+  </script>
+</head>
+<body>
+  <div style="text-align: center; padding-top: 100px; font-family: Arial, sans-serif;">
+    <h1>Opening BYOB Sports...</h1>
+    <p>If nothing happens, <a id="deeplink" href="#">click here to open the app</a> or download it from the app store.</p>
+  </div>
+  <script>
+    document.getElementById('deeplink').href = deepLink;
+  </script>
+</body>
+</html>
