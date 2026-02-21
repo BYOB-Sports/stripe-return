@@ -5,9 +5,20 @@
   <script>
     // Extract matchId and invite_token from URL
     const params = new URLSearchParams(window.location.search);
+    const session_id = params.get('session_id');
+    const cancelled = params.get('cancelled');
     const expired = params.get('expired');    
     // Create deep link
-    const deepLink = `byobsports://home/coaches/propose?expired=${expired ? '1' : 0}`;
+
+    if (session_id) {
+      window.location.href = 'byobsports://matches';
+    } else if (cancelled) {
+      window.location.href = 'byobsports://matches';
+    } else if (expired) {
+      const deepLink = `byobsports://home/coaches/propose?expired=${expired ? '1' : 0}`;
+    } else {
+      window.location.href = 'byobsports://home';
+    }
     
     // Try to open the app
     window.location.href = deepLink;
