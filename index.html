@@ -13,7 +13,7 @@
     if (session_id) {
       window.location.href = 'byobsports://matches';
     } else if (cancelled) {
-      window.location.href = 'byobsports://matches';
+      window.location.href = 'byobsports://home/coaches/findCoaches';
     } else if (expired) {
       const deepLink = `byobsports://home/coaches/propose?expired=${expired ? '1' : 0}`;
     } else {
