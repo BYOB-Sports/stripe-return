@@ -1,37 +1,48 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>BYOB Sports - Open in App</title>
+  <title>BYOB Sports - Finalizing...</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <script>
-    // Extract matchId and invite_token from URL
-    const params = new URLSearchParams(window.location.search);
-    const session_id = params.get('session_id');
-    const cancelled = params.get('cancelled');
-    const expired = params.get('expired');    
-    // Create deep link
+    document.addEventListener("DOMContentLoaded", function() {
+      const params = new URLSearchParams(window.location.search);
+      const session_id = params.get('session_id');
+      const cancelled = params.get('cancelled');
+      const expired = params.get('expired');
+      
+      let deepLink = 'byobsports://home'; // Default fallback
 
-    if (session_id) {
-      window.location.href = 'byobsports://matches';
-    } else if (cancelled) {
-      window.location.href = 'byobsports://home/coaches/findCoaches';
-    } else if (expired) {
-      const deepLink = `byobsports://home/coaches/propose?expired=${expired ? '1' : 0}`;
-    } else {
-      window.location.href = 'byobsports://home';
-    }
-    
-    // Try to open the app
-    window.location.href = deepLink;
+      // 1. Logic to determine where to send them
+      if (session_id) {
+        deepLink = 'byobsports://matches?paid=1';
+      } else if (cancelled) {
+        deepLink = 'byobsports://home/coaches/findCoaches';
+      } else if (expired) {
+        deepLink = `byobsports://home/coaches/propose?expired=1`;
+      }
 
+      // 2. Set the "manual click" link immediately
+      document.getElementById('manual-link').href = deepLink;
+
+      // 3. Try to auto-open the app after a tiny 500ms delay
+      setTimeout(() => {
+        window.location.href = deepLink;
+      }, 500);
+    });
   </script>
 </head>
-<body>
-  <div style="text-align: center; padding-top: 100px; font-family: Arial, sans-serif;">
+<body style="text-align: center; padding-top: 100px; font-family: -apple-system, BlinkMacSystemFont, sans-serif; color: #333;">
+  <div style="max-width: 400px; margin: 0 auto; padding: 20px;">
+    <div style="font-size: 50px; margin-bottom: 20px;">🏆</div>
     <h1>Opening BYOB Sports...</h1>
-    <p>If nothing happens, <a id="deeplink" href="#">click here to open the app</a> or download it from the app store.</p>
+    <p style="color: #666;">We're taking you back to the app to confirm your booking.</p>
+    
+    <div style="margin-top: 40px; padding: 15px; background: #f9f9f9; border-radius: 8px;">
+      <p>If the app doesn't open automatically:</p>
+      <a id="manual-link" href="#" style="display: inline-block; padding: 12px 24px; background: #007AFF; color: white; text-decoration: none; border-radius: 25px; font-weight: bold;">
+        Open BYOB Sports App
+      </a>
+    </div>
   </div>
-  <script>
-    document.getElementById('deeplink').href = deepLink;
-  </script>
 </body>
 </html>
