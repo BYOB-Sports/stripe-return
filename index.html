@@ -1,48 +1,112 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light dark" />
   <title>BYOB Sports</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <script>
-    document.addEventListener("DOMContentLoaded", function() {
-      const params = new URLSearchParams(window.location.search);
-      const session_id = params.get('session_id');
-      const cancelled = params.get('cancelled');
-      const expired = params.get('expired');
-      
-      let deepLink = 'byobsports://home'; // Default fallback
+  <style>
+    :root { color-scheme: light dark; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      background: #fff;
+      color: #111;
+    }
+    main { width: 100%; max-width: 420px; text-align: center; padding: 32px 24px; }
+    .mark { font-size: 44px; line-height: 1; margin-bottom: 16px; }
+    h1 { font-size: 22px; font-weight: 600; margin: 0 0 8px; }
+    p { font-size: 15px; line-height: 1.5; margin: 0 0 24px; opacity: .75; }
+    .btn {
+      display: block;
+      width: 100%;
+      max-width: 280px;
+      margin: 10px auto 0;
+      padding: 13px 20px;
+      border-radius: 10px;
+      text-decoration: none;
+      font-size: 16px;
+      font-weight: 600;
+    }
+    .btn.primary { background: #111; color: #fff; }
+    .btn.secondary { background: transparent; border: 1px solid #ccc; color: #111; font-weight: 500; }
+    #stores { display: none; }
+    #stores.show { display: block; }
 
-      // 1. Logic to determine where to send them
-      if (session_id) {
-        deepLink = 'byobsports://matches?paid=1';
-      } else if (cancelled) {
-        deepLink = 'byobsports://home/coaches/findCoaches';
-      } else if (expired) {
-        deepLink = `byobsports://home/coaches/propose?expired=1`;
+    /* Dark rules go LAST. They carry the same specificity as the light rules
+       above, so source order decides the winner — moved earlier, the light
+       .btn.secondary colour wins and paints #111 text on a #111 background,
+       leaving the store buttons invisible in dark mode. */
+    @media (prefers-color-scheme: dark) {
+      body { background: #111; color: #f2f2f2; }
+      .btn.primary { background: #f2f2f2; color: #111; }
+      .btn.secondary { border-color: #444; color: #f2f2f2; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="mark">🎾</div>
+    <h1 id="heading">Opening BYOB Sports…</h1>
+    <p id="sub">We're taking you back to the app.</p>
+
+    <a class="btn primary" id="open" href="#">Open BYOB Sports</a>
+
+    <div id="stores">
+      <a class="btn secondary" href="https://apps.apple.com/us/app/byob-sports-social-tennis-app/id6751515573">Download for iPhone</a>
+      <a class="btn secondary" href="https://play.google.com/store/apps/details?id=com.byobsports">Download for Android</a>
+    </div>
+  </main>
+
+  <!--
+    The redirect fires from the END of <body>, never from <head>.
+
+    Assigning location during head parsing commits a navigation before the body
+    exists. iOS Safari hands the byobsports:// URL to the app, so the redirect
+    appears to work — but the tab left behind never got a body. Switch back to
+    Safari and it is a blank white page, with the fallback link that was meant
+    to rescue the user never rendered. Parsing and painting the body first is
+    what makes the leftover tab useful instead of blank.
+
+    scripts/check-redirect.mjs fails CI if navigation reappears inside <head>.
+  -->
+  <script>
+    (function () {
+      var params = new URLSearchParams(window.location.search);
+      var sessionId = params.get('session_id');
+      var cancelled = params.get('cancelled');
+      var expired = params.get('expired');
+
+      var deepLink = 'byobsports://home';
+      if (sessionId) deepLink = 'byobsports://matches?paid=1';
+      else if (cancelled) deepLink = 'byobsports://home/coaches/findCoaches';
+      else if (expired) deepLink = 'byobsports://home/coaches/propose?expired=1';
+
+      document.getElementById('open').href = deepLink;
+
+      function redirect() {
+        // replace(), not href: leaves no history entry, so Back in Safari does
+        // not re-fire the "Open in BYOB Sports?" prompt in a loop.
+        window.location.replace(deepLink);
+
+        setTimeout(function () {
+          if (document.visibilityState === 'visible') {
+            document.getElementById('heading').textContent = 'Open BYOB Sports to continue';
+            document.getElementById('stores').className = 'show';
+          }
+        }, 2000);
       }
 
-      // 2. Set the "manual click" link immediately
-      document.getElementById('manual-link').href = deepLink;
-
-      // 3. Try to auto-open the app after a tiny 500ms delay
-      setTimeout(() => {
-        window.location.href = deepLink;
-      }, 500);
-    });
+      // Two frames after load guarantees the body has painted before we navigate.
+      window.addEventListener('load', function () {
+        requestAnimationFrame(function () { requestAnimationFrame(redirect); });
+      }, { once: true });
+    })();
   </script>
-</head>
-<body style="text-align: center; padding-top: 100px; font-family: -apple-system, BlinkMacSystemFont, sans-serif; color: #333;">
-  <div style="max-width: 400px; margin: 0 auto; padding: 20px;">
-    <div style="font-size: 50px; margin-bottom: 20px;">🏆</div>
-    <h1>Opening BYOB Sports...</h1>
-    <p style="color: #666;">We're taking you back to the app.</p>
-    
-    <div style="margin-top: 40px; padding: 15px; background: #f9f9f9; border-radius: 8px;">
-      <p>If the app doesn't open automatically:</p>
-      <a id="manual-link" href="#" style="display: inline-block; padding: 12px 24px; background: #007AFF; color: white; text-decoration: none; border-radius: 25px; font-weight: bold;">
-        Open BYOB Sports App
-      </a>
-    </div>
-  </div>
 </body>
 </html>
